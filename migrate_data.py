@@ -32,7 +32,7 @@ def create_index(elasticsearch_connection, index_name, index_configuration):
                 )
 
 
-def createIndex():
+def create_review_index():
     esConnection = get_elasticsearch_connection()
     data_index_name = "reviews"
 
@@ -74,11 +74,11 @@ def createIndex():
         }
     }
 
-    create_index(esConnection, data_index_name,data_index_configuration)
+    create_index(esConnection, data_index_name, data_index_configuration)
 
 
-def prepareData(data: pd.DataFrame):
-    arr =[[]]
+def prepare_data(data: pd.DataFrame):
+    arr = [[]]
     counter = 0
     maxCounter = 800
 
@@ -125,11 +125,13 @@ def bulk_insert():
     data = pd.read_csv("./reviews.csv")
     insert = 0
 
-    bulk_data = prepareData(data)
+    bulk_data = prepare_data(data)
     for part in bulk_data:
         print(insert)
         bulk_index(part, "reviews")
         insert += 1
 
+
 if __name__ == '__main__':
+    create_review_index()
     bulk_insert()
