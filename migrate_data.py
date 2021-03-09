@@ -33,7 +33,7 @@ def create_index(elasticsearch_connection, index_name, index_configuration):
 
 
 def create_review_index():
-    esConnection = get_elasticsearch_connection()
+    es_connection = get_elasticsearch_connection()
     data_index_name = "reviews"
 
     data_index_configuration = {
@@ -74,15 +74,15 @@ def create_review_index():
         }
     }
 
-    create_index(esConnection, data_index_name, data_index_configuration)
+    create_index(es_connection, data_index_name, data_index_configuration)
 
 
 def prepare_data(data: pd.DataFrame):
     arr = [[]]
     counter = 0
-    maxCounter = 800
+    max_counter = 800
 
-    idCounter = 0
+    id_counter = 0
     for index, row in data.iterrows():
         Name = row['Name']
         Location = row['Location']
@@ -96,7 +96,7 @@ def prepare_data(data: pd.DataFrame):
 
         arr[-1].append({
             '_index': "reviews",
-            '_id': idCounter,
+            '_id': id_counter,
             '_source': {
                 "Name": Name,
                 "Location": Location,
@@ -108,11 +108,11 @@ def prepare_data(data: pd.DataFrame):
         })
 
         counter += 1
-        if counter == maxCounter:
+        if counter == max_counter:
             arr.append([])
             counter = 0
 
-        idCounter += 1
+        id_counter += 1
     return arr
 
 
