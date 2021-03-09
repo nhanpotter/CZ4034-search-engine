@@ -98,12 +98,12 @@ def prepare_data(data: pd.DataFrame):
             '_index': "reviews",
             '_id': id_counter,
             '_source': {
-                "Name": Name,
-                "Location": Location,
-                "Username": Username,
-                "DateInserted": DateInserted,
-                "Review": Review,
-                "Rating": Rating,
+                "name": Name,
+                "location": Location,
+                "username": Username,
+                "dateInserted": DateInserted,
+                "review": Review,
+                "rating": Rating,
             }
         })
 

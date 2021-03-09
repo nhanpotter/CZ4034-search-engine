@@ -92,7 +92,7 @@ def search_elasticsearch(elasticsearch_connection, term):
     return results
 
 
-def get_search_body(term, operator, fuzzy, size=QUERY_RETURN_SIZE):
+def get_search_body(term, operator, fuzzy, size=QUERY_RETURN_SIZE, multi_match=True):
     """
     To get the should body of an Elasticsearch query in Elasticsearch DSL
     Parameters
@@ -107,17 +107,30 @@ def get_search_body(term, operator, fuzzy, size=QUERY_RETURN_SIZE):
         Search body of an Elasticsearch query
     """
 
-    body = {
-        "query": {
-            "match": {
-                "Review": {
+    if multi_match:
+        body = {
+            "query": {
+                "multi_match": {
                     "query": term,
                     "operator": operator,
-                    "fuzziness": fuzzy
+                    "fuzziness": fuzzy,
+                    "fields": ["review", "name", "location"]
                 }
-            }
-        },
-        "size": size
-    }
+            },
+            "size": size
+        }
+    else:
+        body = {
+            "query": {
+                "match": {
+                    "review": {
+                        "query": term,
+                        "operator": operator,
+                        "fuzziness": fuzzy
+                    }
+                }
+            },
+            "size": size
+        }
 
     return body
