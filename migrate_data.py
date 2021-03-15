@@ -84,26 +84,26 @@ def prepare_data(data: pd.DataFrame):
 
     id_counter = 0
     for index, row in data.iterrows():
-        Name = row['Name']
-        Location = row['Location']
-        Username = row['Username']
-        DateInserted = row['Date Inserted']
-        Review = row['Review']
-        Rating = row['Rating']
+        name = row['Name']
+        location = row['Location']
+        username = row['Username']
+        date_inserted = row['Date Inserted']
+        review = row['Review']
+        rating = row['Rating']
 
-        if not isinstance(Rating, int):
-            Rating = -1
+        if not isinstance(rating, int):
+            rating = -1
 
         arr[-1].append({
             '_index': "reviews",
             '_id': id_counter,
             '_source': {
-                "name": Name,
-                "location": Location,
-                "username": Username,
-                "dateInserted": DateInserted,
-                "review": Review,
-                "rating": Rating,
+                "name": name,
+                "location": location,
+                "username": username,
+                "dateInserted": date_inserted,
+                "review": review,
+                "rating": rating,
             }
         })
 
