@@ -43,8 +43,11 @@ def create_review_index():
                     "basic": {
                         "type": "custom",
                         "tokenizer": "standard",
-                        # use porter's algorithm to stem the token
-                        "filter": ["porter_stem"]
+                        "filter": [
+                            "stop",  # Remove stop words
+                            "lowercase",  # "porter_stem" requires lowercase
+                            "porter_stem"  # porter's algo to stem the token
+                        ]
                     }
                 }
             }
