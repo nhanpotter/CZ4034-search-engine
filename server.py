@@ -1,8 +1,12 @@
+import json
+
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
 import es_connection
 from query import API
-import json
+
+load_dotenv(verbose=True)
 
 app = Flask(__name__)
 

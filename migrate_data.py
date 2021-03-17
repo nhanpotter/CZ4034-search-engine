@@ -1,7 +1,11 @@
 import pandas as pd
+from dotenv import load_dotenv
 from elasticsearch import helpers
-from es_connection import get_elasticsearch_connection
+
 from constants import *
+from es_connection import get_elasticsearch_connection
+
+load_dotenv(verbose=True)
 
 
 def create_index(elasticsearch_connection, index_name, index_configuration):
@@ -175,7 +179,7 @@ def bulk_index(bulk_data, data_index_name):
 
 
 def bulk_insert():
-    data = pd.read_csv("./reviews.csv")
+    data = pd.read_csv("./data/reviews.csv")
     insert = 0
 
     bulk_data = prepare_data(data)
