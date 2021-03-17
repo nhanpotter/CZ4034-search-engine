@@ -1,6 +1,7 @@
 import pandas as pd
 from elasticsearch import helpers
 from es_connection import get_elasticsearch_connection
+from constants import *
 
 
 def create_index(elasticsearch_connection, index_name, index_configuration):
@@ -34,11 +35,19 @@ def create_index(elasticsearch_connection, index_name, index_configuration):
 
 def create_review_index():
     es_connection = get_elasticsearch_connection()
-    data_index_name = "reviews"
+    data_index_name = INDEX_NAME
 
     data_index_configuration = {
         "settings": {
             "analysis": {
+                "filter": {
+                    "shingle_filter": {
+                        "type": "shingle",
+                        "min_shingle_size": 2,
+                        "max_shingle_size": 3,
+                        "output_unigrams": "true"
+                    }
+                },
                 "analyzer": {
                     "basic": {
                         "type": "custom",
@@ -48,29 +57,70 @@ def create_review_index():
                             "lowercase",  # "porter_stem" requires lowercase
                             "porter_stem"  # porter's algo to stem the token
                         ]
+                    },
+                    "shingle_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "standard",
+                        "filter": ["lowercase", "shingle_filter"]
+                    },
+                    "reverse_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "standard",
+                        "filter": ["lowercase", "reverse"]
+                    },
+                    "stop_shingle_analyzer": {
+                        "type": "custom",
+                        "tokenizer": "standard",
+                        "filter": ["lowercase", "stop", "shingle_filter"]
                     }
                 }
             }
         },
         "mappings": {
             "properties": {
-                "Name": {
-                    "type": "text"
-                },
-                "DateInserted": {
-                    "type": "text"
-                },
-                "Location": {
-                    "type": "text"
-                },
-                "Username": {
-                    "type": "text"
-                },
-                "Review": {
+                "name": {
                     "type": "text",
-                    "analyzer": "basic"
+                    "fields": {
+                        "shingled": {
+                            "type": "text",
+                            "analyzer": "shingle_analyzer"
+                        },
+                        "reversed": {
+                            "type": "text",
+                            "analyzer": "reverse_analyzer"
+                        }
+                    }
                 },
-                "Rating": {
+                "date_inserted": {
+                    "type": "text"
+                },
+                "location": {
+                    "type": "text",
+                    "fields": {
+                        "shingled": {
+                            "type": "text",
+                            "analyzer": "shingle_analyzer"
+                        },
+                        "reversed": {
+                            "type": "text",
+                            "analyzer": "reverse_analyzer"
+                        }
+                    }
+                },
+                "username": {
+                    "type": "text"
+                },
+                "review": {
+                    "type": "text",
+                    "analyzer": "basic",
+                    "fields": {
+                        "stop_shingled": {
+                            "type": "text",
+                            "analyzer": "stop_shingle_analyzer"
+                        }
+                    }
+                },
+                "rating": {
                     "type": "integer"
                 }
             }
@@ -98,13 +148,13 @@ def prepare_data(data: pd.DataFrame):
             rating = -1
 
         arr[-1].append({
-            '_index': "reviews",
+            '_index': INDEX_NAME,
             '_id': id_counter,
             '_source': {
                 "name": name,
                 "location": location,
                 "username": username,
-                "dateInserted": date_inserted,
+                "date_inserted": date_inserted,
                 "review": review,
                 "rating": rating,
             }
@@ -131,7 +181,7 @@ def bulk_insert():
     bulk_data = prepare_data(data)
     for part in bulk_data:
         print(insert)
-        bulk_index(part, "reviews")
+        bulk_index(part, INDEX_NAME)
         insert += 1
 
 

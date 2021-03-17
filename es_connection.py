@@ -1,7 +1,7 @@
 from elasticsearch import Elasticsearch
 
 
-def get_elasticsearch_connection():
+def get_elasticsearch_connection() -> Elasticsearch:
     elasticsearch_host = 'localhost'
     elasticsearch_port = 9200
 

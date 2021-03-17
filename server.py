@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 
 import es_connection
-import query
+from query import API
 import json
 
 app = Flask(__name__)
@@ -9,14 +9,13 @@ app = Flask(__name__)
 
 @app.route("/ajax", methods=['POST'])
 def ajax():
-
     print(request.data)
-    # response = requests.get('https://monkagiga.firebaseio.com/.json')
     body = json.loads(request.data)
     elasticsearch_connection = es_connection.get_elasticsearch_connection()
     term = body['query']
 
-    result = query.query(term, elasticsearch_connection)
+    api = API(elasticsearch_connection)
+    result = api.query(term)
     response = result
     return jsonify(response)
 
