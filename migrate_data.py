@@ -82,6 +82,9 @@ def create_review_index():
         },
         "mappings": {
             "properties": {
+                "res_id": {
+                    "type": "integer"
+                },
                 "name": {
                     "type": "text",
                     "fields": {
@@ -141,12 +144,13 @@ def prepare_data(data: pd.DataFrame):
 
     id_counter = 0
     for index, row in data.iterrows():
-        name = row['Name']
-        location = row['Location']
-        username = row['Username']
-        date_inserted = row['Date Inserted']
-        review = row['Review']
-        rating = row['Rating']
+        res_id = row['res_id']
+        name = row['name']
+        location = row['location']
+        username = row['username']
+        date_inserted = row['date inserted']
+        review = row['review']
+        rating = row['rating']
 
         if not isinstance(rating, int):
             rating = -1
@@ -155,6 +159,7 @@ def prepare_data(data: pd.DataFrame):
             '_index': INDEX_NAME,
             '_id': id_counter,
             '_source': {
+                "res_id": res_id,
                 "name": name,
                 "location": location,
                 "username": username,

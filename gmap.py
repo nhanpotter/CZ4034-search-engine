@@ -1,7 +1,7 @@
-import googlemaps
 import os
+import random
 
-gmaps = googlemaps.Client(key=os.getenv("API_KEY"))
+import googlemaps
 
 
 def get_lat_lng(address: str):
@@ -13,5 +13,17 @@ def get_lat_lng(address: str):
     Returns:
         dict: key is 'lat' and 'lng'
     """
-    response = gmaps.geocode(address)
+    key = os.getenv("API_KEY")
+    if not os.getenv("API_KEY_BACKUP"):
+        if random.choice([True, False]):
+            key = os.getenv("API_KEY_BACKUP")
+
+    gmaps = googlemaps.Client(key=key)
+    try:
+        response = gmaps.geocode(address)
+    except:
+        # In case address too long
+        response = gmaps.geocode(address[len(address) // 2:])
+
+    print(response)
     return response[0]['geometry']['location']

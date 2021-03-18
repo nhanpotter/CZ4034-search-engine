@@ -1,6 +1,7 @@
 # Config
 QUERY_RETURN_SIZE = 10
 INDEX_NAME = "reviews"
+DATA_DIR_NAME = "data"
 
 # Elastic Search Constants
 AND_OPERATOR = "and"

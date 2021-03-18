@@ -16,11 +16,12 @@ class API:
     def __init__(self, es_connection):
         self.es_connection = es_connection
 
-    def query(self, term):
+    def query(self, term, res_ids=None):
         """Get list of recommended tweet for each user input
 
         Args:
         term (str): String entered by user to perform search
+        res_ids (List): List of restaurant ids
 
         Returns:
             dict:
@@ -31,28 +32,30 @@ class API:
         query_response = {}
         suggest_response = {}
         try:
-            query_response = self._search_elasticsearch(term)
+            query_response = self._search_elasticsearch(term, res_ids)
             suggest_response = self._suggest_elasticsearch(term)
         except Exception as e:
             print(e)
 
         print("query completed")
-        response["query"] = query_response
+        response["data"] = query_response
         response["suggest"] = suggest_response
 
         return response
 
-    def _search_elasticsearch(self, term):
+    def _search_elasticsearch(self, term, res_ids=None):
         """Query Elasticsearch cluster for list of recommended candidate
 
         Args:
             term (str): String entered by user to perform search
+            res_ids (List): list of restaurant ids
 
         Returns:
             dict: Elasticsearch Response
         """
         # strict condition, every term must appear in the query
-        search_body = self._get_search_body(term, AND_OPERATOR, 0, QUERY_RETURN_SIZE)
+        search_body = self._get_search_body(
+            term, AND_OPERATOR, 0, QUERY_RETURN_SIZE, res_ids=res_ids)
 
         response = self.es_connection.search(
             index=INDEX_NAME,
@@ -64,7 +67,8 @@ class API:
             return results
 
         # every term must appear in the query with assistant of fuzzy parameter to correct misspelling
-        search_body = self._get_search_body(term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results))
+        search_body = self._get_search_body(
+            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results), res_ids=res_ids)
 
         response = self.es_connection.search(
             index=INDEX_NAME,
@@ -76,7 +80,8 @@ class API:
             return results
 
         # some terms can be missing in the query with assistant of fuzzy parameter to correct misspelling
-        search_body = self._get_search_body(term, OR_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results))
+        search_body = self._get_search_body(
+            term, OR_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results), res_ids=res_ids)
 
         response = self.es_connection.search(
             index=INDEX_NAME,
@@ -88,7 +93,7 @@ class API:
             return results
         return results
 
-    def _get_search_body(self, term, operator, fuzzy, size=QUERY_RETURN_SIZE, multi_match=True):
+    def _get_search_body(self, term, operator, fuzzy, size=QUERY_RETURN_SIZE, multi_match=True, res_ids=None):
         """To get the should body of an Elasticsearch query in Elasticsearch DSL
 
         Args:
@@ -104,26 +109,41 @@ class API:
         """
 
         if multi_match:
-            body = {
-                "query": {
-                    "multi_match": {
-                        "query": term,
-                        "operator": operator,
-                        "fuzziness": fuzzy,
-                        "fields": ["review", "name", "location"]
-                    }
-                },
-                "size": size
+            search_body = {
+                "multi_match": {
+                    "query": term,
+                    "operator": operator,
+                    "fuzziness": fuzzy,
+                    "fields": ["review", "name", "location"]
+                }
             }
         else:
+            search_body = {
+                "match": {
+                    "review": {
+                        "query": term,
+                        "operator": operator,
+                        "fuzziness": fuzzy
+                    }
+                }
+            }
+
+        body = {
+            "query": search_body,
+            "size": size
+        }
+        if res_ids and len(res_ids) > 0:
             body = {
                 "query": {
-                    "match": {
-                        "review": {
-                            "query": term,
-                            "operator": operator,
-                            "fuzziness": fuzzy
-                        }
+                    "bool": {
+                        "must": [
+                            search_body,
+                            {
+                                "terms": {
+                                    "res_id": res_ids
+                                }
+                            }
+                        ]
                     }
                 },
                 "size": size
