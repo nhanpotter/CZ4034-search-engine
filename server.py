@@ -3,6 +3,7 @@ import json
 import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_cors import CORS,cross_origin
 
 import es_connection
 from constants import DATA_DIR_NAME
@@ -11,7 +12,7 @@ from query import API
 load_dotenv(verbose=True)
 
 app = Flask(__name__)
-
+cors = CORS(app)
 
 def get_error_dict(msg):
     return {
@@ -20,6 +21,7 @@ def get_error_dict(msg):
 
 
 @app.route("/query", methods=['POST'])
+@cross_origin()
 def query_api():
     print(request.data)
     body = json.loads(request.data)
@@ -42,6 +44,7 @@ def query_api():
 
 
 @app.route("/list", methods=["GET"])
+@cross_origin()
 def restaurant_list_api():
     df = pd.read_csv("./{}/restaurants.csv".format(DATA_DIR_NAME))
     response = df.to_dict('records')
