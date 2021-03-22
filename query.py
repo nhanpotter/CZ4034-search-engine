@@ -55,43 +55,14 @@ class API:
         """
         # strict condition, every term must appear in the query
         search_body = self._get_search_body(
-            term, AND_OPERATOR, 0, QUERY_RETURN_SIZE, res_ids=res_ids)
+            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE, res_ids=res_ids)
 
         response = self.es_connection.search(
             index=INDEX_NAME,
             body=search_body
         )
 
-        results = response['hits']['hits']
-        if len(results) >= QUERY_RETURN_SIZE:
-            return results
-
-        # every term must appear in the query with assistant of fuzzy parameter to correct misspelling
-        search_body = self._get_search_body(
-            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results), res_ids=res_ids)
-
-        response = self.es_connection.search(
-            index=INDEX_NAME,
-            body=search_body
-        )
-
-        results.append(response['hits']['hits'])
-        if len(results) >= QUERY_RETURN_SIZE:
-            return results
-
-        # some terms can be missing in the query with assistant of fuzzy parameter to correct misspelling
-        search_body = self._get_search_body(
-            term, OR_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE - len(results), res_ids=res_ids)
-
-        response = self.es_connection.search(
-            index=INDEX_NAME,
-            body=search_body
-        )
-
-        results.append(response['hits']['hits'])
-        if len(results) < QUERY_RETURN_SIZE:
-            return results
-        return results
+        return response
 
     def _get_search_body(self, term, operator, fuzzy, size=QUERY_RETURN_SIZE, multi_match=True, res_ids=None):
         """To get the should body of an Elasticsearch query in Elasticsearch DSL
