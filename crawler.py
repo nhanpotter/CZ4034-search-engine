@@ -23,7 +23,6 @@ def init_driver():
 
 
 class TripAdvisorCrawler:
-
     driver = init_driver()
 
     '''
@@ -43,6 +42,7 @@ class TripAdvisorCrawler:
         ]
     }
     '''
+
     def scrapeReviews(self, url, maxNoReviews):
         reviewCount = 0
         # store restaurant info
@@ -51,7 +51,7 @@ class TripAdvisorCrawler:
         data["reviews"] = []
         # in case no reviews could be retrieve from the restaurant
         data["success"] = False
-        while reviewCount != maxNoReviews:
+        while reviewCount < maxNoReviews:
             # Requests
             self.driver.get(url)
             time.sleep(1)
@@ -96,24 +96,25 @@ class TripAdvisorCrawler:
                                 "review": reviewText,
                                 "rating": rating
                             })
-                            data["success"] = True # at least on review is crawled
+                            data["success"] = True  # at least on review is crawled
                             reviewCount += 1
                             if reviewCount >= maxNoReviews:
                                 break
                         except Exception:  # Just go with the next review
                             pass
-                except Exception: # reviews section could not be found
+                except Exception:  # reviews section could not be found
                     pass
-            except Exception: # the basic info of the restaurant could not be crawled
+            except Exception:  # the basic info of the restaurant could not be crawled
                 pass
             # Go to next page if exists
             try:
                 unModifiedUrl = str(soup.find('a', class_='nav next ui_button primary', href=True)['href'])
                 url = 'https://www.tripadvisor.com' + unModifiedUrl
             except:
-                reviewCount = maxNoReviews # terminate the loop
+                reviewCount = maxNoReviews  # terminate the loop
 
         return data
+
 
 if __name__ == '__main__':
     crawler = TripAdvisorCrawler()
@@ -121,5 +122,5 @@ if __name__ == '__main__':
     data = crawler.scrapeReviews(
         'https://www.tripadvisor.com.sg/Restaurant_Review-g294265-d3916132-Reviews-Momma_Kong_s-Singapore.html', 10)
     print(data)
-    assert(len(data["reviews"])==10)
+    assert (len(data["reviews"]) == 10)
     print(time.time() - start)
