@@ -21,3 +21,5 @@ Werkzeug==1.0.1
 googlemaps
 python-dotenv
 flask-cors
+selenium
+bs4

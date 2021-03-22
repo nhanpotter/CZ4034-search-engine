@@ -11,3 +11,8 @@ AUTO_FUZZY = "AUTO"
 # Suggester
 SUGGEST_PRE_TAG = "<strong>"
 SUGGEST_POST_TAG = "</strong>"
+
+# Sentiment Analysis
+SENTIMENT_BAD = 0
+SENTIMENT_NEUTRAL = 1
+SENTIMENT_POSTIVE = 2

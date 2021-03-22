@@ -25,20 +25,25 @@ def get_error_dict(msg):
 def query_api():
     print(request.data)
     body = json.loads(request.data)
-    res_ids = None
+    res_ids = []
+    sentiments = []
     # Check for valid body
     if "query" not in body:
         return jsonify(get_error_dict("no 'query' provided"))
     if "res_ids" in body:
-        if not isinstance(body["res_ids"], list) or len(body["res_ids"]) == 0:
+        if not isinstance(body["res_ids"], list):
             return jsonify(get_error_dict("please provide list of ids"))
         res_ids = body["res_ids"]
+    if "sentiments" in body:
+        if not isinstance(body["sentiments"], list):
+            return jsonify(get_error_dict("please provide list of sentiments"))
+        sentiments = body["sentiments"]
 
     elasticsearch_connection = es_connection.get_elasticsearch_connection()
     term = body['query']
 
     api = API(elasticsearch_connection)
-    result = api.query(term, res_ids)
+    result = api.query(term, res_ids, sentiments)
     response = result
     return jsonify(response)
 

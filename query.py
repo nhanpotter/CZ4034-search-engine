@@ -3,6 +3,18 @@ import json
 from constants import *
 
 
+def get_ratings_from_sentiments(sentiments: list) -> list:
+    ratings = []
+    if SENTIMENT_BAD in sentiments:
+        ratings.extend([1, 2])
+    if SENTIMENT_NEUTRAL in sentiments:
+        ratings.extend([3])
+    if SENTIMENT_POSTIVE in sentiments:
+        ratings.extend([4, 5])
+
+    return ratings
+
+
 class API:
     """Internal API to interact with
 
@@ -16,12 +28,13 @@ class API:
     def __init__(self, es_connection):
         self.es_connection = es_connection
 
-    def query(self, term, res_ids=None):
+    def query(self, term, res_ids, sentiments):
         """Get list of recommended tweet for each user input
 
         Args:
         term (str): String entered by user to perform search
         res_ids (List): List of restaurant ids
+        sentiments (List): List of sentiments
 
         Returns:
             dict:
@@ -32,7 +45,7 @@ class API:
         query_response = {}
         suggest_response = {}
         try:
-            query_response = self._search_elasticsearch(term, res_ids)
+            query_response = self._search_elasticsearch(term, res_ids, sentiments)
             suggest_response = self._suggest_elasticsearch(term)
         except Exception as e:
             print(e)
@@ -43,7 +56,7 @@ class API:
 
         return response
 
-    def _search_elasticsearch(self, term, res_ids=None):
+    def _search_elasticsearch(self, term, res_ids, sentiments):
         """Query Elasticsearch cluster for list of recommended candidate
 
         Args:
@@ -55,7 +68,10 @@ class API:
         """
         # strict condition, every term must appear in the query
         search_body = self._get_search_body(
-            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE, res_ids=res_ids)
+            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE,
+            res_ids=res_ids,
+            sentiments=sentiments
+        )
 
         response = self.es_connection.search(
             index=INDEX_NAME,
@@ -64,7 +80,7 @@ class API:
 
         return response
 
-    def _get_search_body(self, term, operator, fuzzy, size=QUERY_RETURN_SIZE, multi_match=True, res_ids=None):
+    def _get_search_body(self, term, operator, fuzzy, size, res_ids, sentiments, multi_match=True):
         """To get the should body of an Elasticsearch query in Elasticsearch DSL
 
         Args:
@@ -72,6 +88,8 @@ class API:
             operator: 'and' or 'or' operator, 'and' operator has tighter constraints than 'or'
             fuzzy: String matching option, 0 means exact match, 'AUTO' means partial match
             size: Number of results to be returned
+            res_ids (List): List of restaurant ids
+            sentiments (List): List of sentiments
             multi_match: True if use multiple fields to match. False if use only
                 "review" field
 
@@ -103,18 +121,26 @@ class API:
             "query": search_body,
             "size": size
         }
-        if res_ids and len(res_ids) > 0:
+        # If exists additional query params
+        if res_ids or sentiments:
+            search_queries = [search_body]
+            if res_ids:
+                search_queries.append({
+                    "terms": {
+                        "res_id": res_ids
+                    }
+                })
+            if sentiments:
+                ratings = get_ratings_from_sentiments(sentiments)
+                search_queries.append({
+                    "terms": {
+                        "rating": ratings
+                    }
+                })
             body = {
                 "query": {
                     "bool": {
-                        "must": [
-                            search_body,
-                            {
-                                "terms": {
-                                    "res_id": res_ids
-                                }
-                            }
-                        ]
+                        "must": search_queries
                     }
                 },
                 "size": size
