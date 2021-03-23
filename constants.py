@@ -2,6 +2,7 @@
 QUERY_RETURN_SIZE = 10
 INDEX_NAME = "reviews"
 DATA_DIR_NAME = "data"
+RESTAURANT_DB_PATH = "./{}/restaurant_db.json".format(DATA_DIR_NAME)
 
 # Elastic Search Constants
 AND_OPERATOR = "and"

@@ -116,6 +116,12 @@ class TripAdvisorCrawler:
         return data
 
 
+def crawl_reviews(url, max_no_reviews):
+    ta_crawler = TripAdvisorCrawler()
+    reviews = ta_crawler.scrapeReviews(url, max_no_reviews)
+    return reviews
+
+
 if __name__ == '__main__':
     crawler = TripAdvisorCrawler()
     start = time.time()

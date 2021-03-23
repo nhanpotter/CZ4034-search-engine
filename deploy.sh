@@ -3,6 +3,7 @@
 git pull
 source .venv/bin/activate
 pip3 install -r requirements.txt
+python3 migrate_restaurant.py
 python3 migrate_data.py
 ps axf|grep "flask"|grep -v grep| awk '{print "kill -9 " $1}'|sh
 export FLASK_APP=server.py
