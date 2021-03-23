@@ -1,5 +1,6 @@
 import os
 import time
+import requests
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -24,6 +25,36 @@ def init_driver():
 
 class TripAdvisorCrawler:
     driver = init_driver()
+    '''
+        form: 
+        {
+            "success": bool,
+            "name" : ...,
+            "location" : ...., 
+        }
+    '''
+    def scrapeRestaurant(self, url):
+        page = requests.get(url)
+        soup = BeautifulSoup(page.text, 'html.parser')
+        restaurant = {}
+        restaurant["success"] = False
+        try:
+            # find all details
+            ct = soup.findAll("div", {"class": "_2170bBgV"})
+            if not ct:
+                ct = soup.findAll("div", {"class": "_1XLfiSsv"})
+            print(ct)
+            # Store name h1 (div = _1hkogt_o)
+            storeName = soup.find('h1', class_='_3a1XQ88S').text.strip()
+            # Store address (within div = _2vbD36Hr _36TL14Jn)
+            storeAddress = soup.find('div', class_='_2vbD36Hr _36TL14Jn').find('span', class_='_2saB_OSe').text.strip()
+            # append data value to restaurant object
+            restaurant["success"] = True
+            restaurant["name"] = storeName
+            restaurant["location"] = storeAddress
+        except Exception:
+            pass
+        return restaurant
 
     '''
     form: 
@@ -42,7 +73,6 @@ class TripAdvisorCrawler:
         ]
     }
     '''
-
     def scrapeReviews(self, url, maxNoReviews):
         reviewCount = 0
         # store restaurant info
@@ -51,6 +81,10 @@ class TripAdvisorCrawler:
         data["reviews"] = []
         # in case no reviews could be retrieve from the restaurant
         data["success"] = False
+        # crawl the name and location of the restaurant
+        restaurantInfo = self.scrapeRestaurant(url)
+        if not restaurantInfo["success"]: # the basic information could not be crawled
+            return data
         while reviewCount < maxNoReviews:
             # Requests
             self.driver.get(url)
@@ -66,9 +100,9 @@ class TripAdvisorCrawler:
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             try:
                 # Store name
-                storeName = soup.find('h1', class_='_3a1XQ88S').text
+                storeName = restaurantInfo["name"]
                 # Store location
-                storeLoc = soup.find('div', class_='_2vbD36Hr _36TL14Jn').find('span', class_='_2saB_OSe').text.strip()
+                storeLoc = restaurantInfo["location"]
                 # Reviews
                 results = soup.find('div', class_='listContainer hide-more-mobile')
                 # name and location of restaurant
