@@ -97,23 +97,46 @@ class API:
             json: Search body of an Elasticsearch query
         """
 
+        # A hacky way to boost the score of exact match, because exact
+        # match will satisfy both queries, but fuzzy match only satisfy one.
         if multi_match:
             search_body = {
-                "multi_match": {
-                    "query": term,
-                    "operator": operator,
-                    "fuzziness": fuzzy,
-                    "fields": ["name", "review", "location"]
+                "bool": {
+                    "should": [{
+                        "multi_match": {
+                            "query": term,
+                            "operator": operator,
+                            "fields": ["name", "review", "location"]
+                        }
+                    }, {
+                        "multi_match": {
+                            "query": term,
+                            "operator": operator,
+                            "fuzziness": fuzzy,
+                            "fields": ["name", "review", "location"]
+                        }
+                    }]
                 }
             }
         else:
             search_body = {
-                "match": {
-                    "review": {
-                        "query": term,
-                        "operator": operator,
-                        "fuzziness": fuzzy
-                    }
+                "bool": {
+                    "should": [{
+                        "match": {
+                            "review": {
+                                "query": term,
+                                "operator": operator,
+                            }
+                        }
+                    }, {
+                        "match": {
+                            "review": {
+                                "query": term,
+                                "operator": operator,
+                                "fuzziness": fuzzy
+                            }
+                        }
+                    }]
                 }
             }
 
