@@ -18,10 +18,13 @@ class RestaurantUtils:
         """
         last_id = -1
         for restaurant in self.db.all():
-            if restaurant.id > last_id:
-                last_id = restaurant.id
+            if restaurant['id'] > last_id:
+                last_id = restaurant['id']
 
         return last_id
+
+    def get_next_id(self):
+        return self._get_last_id() + 1
 
     def restaurant_exists(self, name, location):
         """Check if restaurant already exists in the db.
@@ -31,11 +34,11 @@ class RestaurantUtils:
         """
         Restaurant = Query()
         result = self.db.search(
-            (Restaurant.name == name) & (Restaurant.location == location))
+            (Restaurant['name'] == name) & (Restaurant['location'] == location))
         return len(result) != 0
 
     def insert(self, name, location):
-        res_id = self._get_last_id() + 1
+        res_id = self.get_next_id()
         loc = get_lat_lng(location)
         restaurant = {
             'id': res_id,

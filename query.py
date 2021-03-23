@@ -103,7 +103,7 @@ class API:
                     "query": term,
                     "operator": operator,
                     "fuzziness": fuzzy,
-                    "fields": ["review", "name", "location"]
+                    "fields": ["name", "review", "location"]
                 }
             }
         else:

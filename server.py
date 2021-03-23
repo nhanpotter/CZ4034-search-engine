@@ -5,7 +5,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
 import es_connection
-from crawler import crawl_reviews
+from crawler import TripAdvisorCrawler
 from migrate_data import insert_new_reviews
 from query import API
 from restaurant_utils import RestaurantUtils
@@ -75,20 +75,26 @@ def add_review_api():
     url = body['url']
     max_no_reviews = body['count']
 
-    data = crawl_reviews(url, max_no_reviews)
-    if not data['success']:
-        return jsonify(get_error_dict("no reviews found for this restaurant"))
-
-    name = data['name']
-    location = data['location']
+    crawler = TripAdvisorCrawler()
     utils = RestaurantUtils()
-    # Check if restaurant already been added
+
+    info = crawler.scrapeRestaurant(url)
+    if not info['success']:
+        return jsonify(get_error_dict("name & location is not found for this restaurant"))
+
+    # Check if restaurant already been added to the db
+    name = info['name']
+    location = info['location']
     if utils.restaurant_exists(name, location):
         return jsonify(get_error_dict('restaurant already been added'))
 
-    # Insert restaurant to db
-    inserted_restaurant = utils.insert(name, location)
-    insert_new_reviews(data['reviews'], res_id=inserted_restaurant['id'])
+    data = crawler.scrapeReviews(url, max_no_reviews)
+    if not data['success']:
+        return jsonify(get_error_dict("no reviews found for this restaurant"))
+
+    # Add reviews to Elasticsearch and insert restaurant to db
+    insert_new_reviews(data['reviews'], res_id=utils.get_next_id())
+    utils.insert(name, location)
 
     return jsonify({})
 

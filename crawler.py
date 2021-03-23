@@ -33,6 +33,7 @@ class TripAdvisorCrawler:
             "location" : ...., 
         }
     '''
+
     def scrapeRestaurant(self, url):
         page = requests.get(url)
         soup = BeautifulSoup(page.text, 'html.parser')
@@ -73,6 +74,7 @@ class TripAdvisorCrawler:
         ]
     }
     '''
+
     def scrapeReviews(self, url, maxNoReviews):
         reviewCount = 0
         # store restaurant info
@@ -83,8 +85,16 @@ class TripAdvisorCrawler:
         data["success"] = False
         # crawl the name and location of the restaurant
         restaurantInfo = self.scrapeRestaurant(url)
-        if not restaurantInfo["success"]: # the basic information could not be crawled
+        if not restaurantInfo["success"]:  # the basic information could not be crawled
             return data
+        # Store name
+        storeName = restaurantInfo["name"]
+        # Store location
+        storeLoc = restaurantInfo["location"]
+        # name and location of restaurant
+        data["name"] = storeName
+        data["location"] = storeLoc
+
         while reviewCount < maxNoReviews:
             # Requests
             self.driver.get(url)
@@ -99,15 +109,9 @@ class TripAdvisorCrawler:
                     pass
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             try:
-                # Store name
-                storeName = restaurantInfo["name"]
-                # Store location
-                storeLoc = restaurantInfo["location"]
                 # Reviews
                 results = soup.find('div', class_='listContainer hide-more-mobile')
-                # name and location of restaurant
-                data["name"] = storeName
-                data["location"] = storeLoc
+
                 try:
                     reviews = results.find_all('div', class_='prw_rup prw_reviews_review_resp')
                     for review in reviews:
@@ -148,12 +152,6 @@ class TripAdvisorCrawler:
                 reviewCount = maxNoReviews  # terminate the loop
 
         return data
-
-
-def crawl_reviews(url, max_no_reviews):
-    ta_crawler = TripAdvisorCrawler()
-    reviews = ta_crawler.scrapeReviews(url, max_no_reviews)
-    return reviews
 
 
 if __name__ == '__main__':
