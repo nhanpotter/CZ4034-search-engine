@@ -125,6 +125,15 @@ class API:
                     }]
                 }
             }
+            highlight_body = {
+                "pre_tags": [HIGHLIGHT_PRE_TAG],
+                "post_tags": [HIGHLIGHT_POST_TAG],
+                "fields": {
+                    "name": {},
+                    "review": {},
+                    "location": {}
+                }
+            }
         else:
             search_body = {
                 "bool": {
@@ -154,10 +163,18 @@ class API:
                     }]
                 }
             }
+            highlight_body = {
+                "pre_tags": [HIGHLIGHT_PRE_TAG],
+                "post_tags": [HIGHLIGHT_POST_TAG],
+                "fields": {
+                    "review": {},
+                }
+            }
 
         body = {
             "query": search_body,
-            "size": size
+            "size": size,
+            "highlight": highlight_body
         }
         # If exists additional query params
         if res_ids or sentiments:
@@ -175,13 +192,11 @@ class API:
                         "rating": ratings
                     }
                 })
-            body = {
-                "query": {
-                    "bool": {
-                        "must": search_queries
-                    }
-                },
-                "size": size
+
+            body["query"] = {
+                "bool": {
+                    "must": search_queries
+                }
             }
 
         return body

@@ -8,6 +8,8 @@ RESTAURANT_DB_PATH = "./{}/restaurant_db.json".format(DATA_DIR_NAME)
 AND_OPERATOR = "and"
 OR_OPERATOR = "or"
 AUTO_FUZZY = "AUTO"
+HIGHLIGHT_PRE_TAG = "<strong>"
+HIGHLIGHT_POST_TAG = "</strong>"
 
 # Suggester
 SUGGEST_PRE_TAG = "<strong>"
