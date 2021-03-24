@@ -11,3 +11,6 @@
     - `0`: Negative
     - `1`: Neutral
     - `2`: Positive
+3. `/add` - `POST`: Add reviews from TripAdvisor restaurant URL
+- `url`: Tripadvisor URL to restaurant
+- `count`: Number of reviews to be crawled from the restaurant
