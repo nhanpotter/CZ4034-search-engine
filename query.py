@@ -68,7 +68,7 @@ class API:
         """
         # strict condition, every term must appear in the query
         search_body = self._get_search_body(
-            term, AND_OPERATOR, AUTO_FUZZY, QUERY_RETURN_SIZE,
+            term, AUTO_FUZZY, QUERY_RETURN_SIZE,
             res_ids=res_ids,
             sentiments=sentiments
         )
@@ -80,7 +80,7 @@ class API:
 
         return response
 
-    def _get_search_body(self, term, operator, fuzzy, size, res_ids, sentiments, multi_match=True):
+    def _get_search_body(self, term, fuzzy, size, res_ids, sentiments, multi_match=True):
         """To get the should body of an Elasticsearch query in Elasticsearch DSL
 
         Args:
@@ -98,20 +98,27 @@ class API:
         """
 
         # A hacky way to boost the score of exact match, because exact
-        # match will satisfy both queries, but fuzzy match only satisfy one.
+        # match will satisfy all queries, but fuzzy match only satisfy a few.
         if multi_match:
             search_body = {
                 "bool": {
                     "should": [{
                         "multi_match": {
                             "query": term,
-                            "operator": operator,
+                            "operator": AND_OPERATOR,
                             "fields": ["name", "review", "location"]
                         }
                     }, {
                         "multi_match": {
                             "query": term,
-                            "operator": operator,
+                            "operator": AND_OPERATOR,
+                            "fuzziness": fuzzy,
+                            "fields": ["name", "review", "location"]
+                        }
+                    }, {
+                        "multi_match": {
+                            "query": term,
+                            "operator": OR_OPERATOR,
                             "fuzziness": fuzzy,
                             "fields": ["name", "review", "location"]
                         }
@@ -125,14 +132,22 @@ class API:
                         "match": {
                             "review": {
                                 "query": term,
-                                "operator": operator,
+                                "operator": AND_OPERATOR,
                             }
                         }
                     }, {
                         "match": {
                             "review": {
                                 "query": term,
-                                "operator": operator,
+                                "operator": AND_OPERATOR,
+                                "fuzziness": fuzzy
+                            }
+                        }
+                    }, {
+                        "match": {
+                            "review": {
+                                "query": term,
+                                "operator": OR_OPERATOR,
                                 "fuzziness": fuzzy
                             }
                         }
