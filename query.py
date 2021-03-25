@@ -217,7 +217,8 @@ class API:
                         "field": "review.stop_shingled",
                         "direct_generator": [{
                             "field": "review.stop_shingled",
-                            "suggest_mode": "popular"
+                            "suggest_mode": "popular",
+                            "max_edits": 1
                         }],
                         "collate": {
                             "query": {
@@ -242,12 +243,14 @@ class API:
                         "field": "name.shingled",
                         "direct_generator": [{
                             "field": "name.shingled",
-                            "suggest_mode": "popular"
+                            "suggest_mode": "popular",
+                            "max_edits": 1
                         }, {
                             "field": "name.reversed",
                             "suggest_mode": "popular",
                             "pre_filter": "reverse_analyzer",
-                            "post_filter": "reverse_analyzer"
+                            "post_filter": "reverse_analyzer",
+                            "max_edits": 1
                         }],
                         "collate": {
                             "query": {
@@ -272,12 +275,14 @@ class API:
                         "field": "location.shingled",
                         "direct_generator": [{
                             "field": "name.shingled",
-                            "suggest_mode": "popular"
+                            "suggest_mode": "popular",
+                            "max_edits": 1
                         }, {
                             "field": "location.reversed",
                             "suggest_mode": "popular",
                             "pre_filter": "reverse_analyzer",
-                            "post_filter": "reverse_analyzer"
+                            "post_filter": "reverse_analyzer",
+                            "max_edits": 1
                         }],
                         "collate": {
                             "query": {
