@@ -93,10 +93,10 @@ def add_review_api():
         return jsonify(get_error_dict("no reviews found for this restaurant"))
 
     # Add reviews to Elasticsearch and insert restaurant to db
-    insert_new_reviews(data['reviews'], res_id=utils.get_next_id())
+    inserted_reviews = insert_new_reviews(data['reviews'], res_id=utils.get_next_id())
     utils.insert(name, location)
 
-    return jsonify({})
+    return jsonify(inserted_reviews)
 
 
 if __name__ == '__main__':

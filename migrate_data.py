@@ -222,6 +222,8 @@ def insert_new_reviews(data, res_id):
         )
     bulk_index(to_be_insert)
 
+    return to_be_insert
+
 
 if __name__ == '__main__':
     create_review_index()
