@@ -8,7 +8,7 @@ from es_connection import get_elasticsearch_connection
 load_dotenv(verbose=True)
 
 
-def create_index(elasticsearch_connection, index_name, index_configuration):
+def create_index(elasticsearch_connection, index_name, index_configuration) -> bool:
     if elasticsearch_connection.indices.exists(index_name):
         response = elasticsearch_connection.indices.delete(index=index_name)
         assert response['acknowledged'] is True
@@ -30,14 +30,16 @@ def create_index(elasticsearch_connection, index_name, index_configuration):
             if create_index_retries is create_index_max_retries:
                 print("{}: Create index exceeded max retries")
                 print(e)
+                return False
             else:
                 create_index_retries = create_index_retries + 1
                 print(
                     "{}: Create index retries: {}".format(index_name, index_name)
                 )
+    return True
 
 
-def create_review_index():
+def create_review_index() -> bool:
     es_connection = get_elasticsearch_connection()
     data_index_name = INDEX_NAME
 
@@ -50,15 +52,23 @@ def create_review_index():
                         "min_shingle_size": 2,
                         "max_shingle_size": 3,
                         "output_unigrams": "true"
-                    }
+                    },
+                    # https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html
+                    # "synonym_filter": {
+                    #     "type": "synonym",
+                    #     "format": "wordnet",
+                    #     "lenient": "true",
+                    #     "expand": "false",
+                    #     "synonyms_path": "analysis/wn_s.pl"
+                    # }
                 },
                 "analyzer": {
                     "basic": {
                         "type": "custom",
                         "tokenizer": "standard",
                         "filter": [
-                            "stop",  # Remove stop words
                             "lowercase",  # "porter_stem" requires lowercase
+                            "stop",  # Remove stop words
                             "porter_stem"  # porter's algo to stem the token
                         ]
                     },
@@ -76,7 +86,12 @@ def create_review_index():
                         "type": "custom",
                         "tokenizer": "standard",
                         "filter": ["lowercase", "stop", "shingle_filter"]
-                    }
+                    },
+                    # "synonym_analyzer": {
+                    #     "type": "custom",
+                    #     "tokenizer": "standard",
+                    #     "filter": ["lowercase", "stop", "synonym_filter"]
+                    # }
                 }
             }
         },
@@ -124,7 +139,11 @@ def create_review_index():
                         "stop_shingled": {
                             "type": "text",
                             "analyzer": "stop_shingle_analyzer"
-                        }
+                        },
+                        # "synonymed": {
+                        #     "type": "text",
+                        #     "analyzer": "synonym_analyzer"
+                        # }
                     }
                 },
                 "rating": {
@@ -134,7 +153,7 @@ def create_review_index():
         }
     }
 
-    create_index(es_connection, data_index_name, data_index_configuration)
+    return create_index(es_connection, data_index_name, data_index_configuration)
 
 
 def prepare_review(res_id, name, location, username, date_inserted, review, rating, review_id=None):
@@ -226,5 +245,7 @@ def insert_new_reviews(data, res_id):
 
 
 if __name__ == '__main__':
-    create_review_index()
-    bulk_insert()
+    created = create_review_index()
+    if created:
+        bulk_insert()
+        print("Data Migration Successfully")

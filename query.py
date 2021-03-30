@@ -174,7 +174,8 @@ class API:
         body = {
             "query": search_body,
             "size": size,
-            "highlight": highlight_body
+            # Highlight term appearance in results
+            # "highlight": highlight_body
         }
         # If exists additional query params
         if res_ids or sentiments:

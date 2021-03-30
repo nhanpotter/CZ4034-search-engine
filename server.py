@@ -96,7 +96,9 @@ def add_review_api():
     inserted_reviews = insert_new_reviews(data['reviews'], res_id=utils.get_next_id())
     utils.insert(name, location)
 
-    return jsonify(inserted_reviews)
+    return jsonify({
+        "data": inserted_reviews
+    })
 
 
 if __name__ == '__main__':
