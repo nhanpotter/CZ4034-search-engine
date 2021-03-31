@@ -78,7 +78,11 @@ def add_review_api():
     crawler = TripAdvisorCrawler()
     utils = RestaurantUtils()
 
-    info = crawler.scrapeRestaurant(url)
+    try:
+        info = crawler.scrapeRestaurant(url)
+    except Exception as e:
+        print(e)
+        return jsonify(get_error_dict("error scraping restaurant"))
     if not info['success']:
         return jsonify(get_error_dict("name & location is not found for this restaurant"))
 
@@ -88,7 +92,11 @@ def add_review_api():
     if utils.restaurant_exists(name, location):
         return jsonify(get_error_dict('restaurant already been added'))
 
-    data = crawler.scrapeReviews(url, max_no_reviews)
+    try:
+        data = crawler.scrapeReviews(url, max_no_reviews)
+    except Exception as e:
+        print(e)
+        return jsonify(get_error_dict("error scraping restaurant"))
     if not data['success']:
         return jsonify(get_error_dict("no reviews found for this restaurant"))
 
