@@ -14,3 +14,5 @@
 3. `/add` - `POST`: Add reviews from TripAdvisor restaurant URL
 - `url`: Tripadvisor URL to restaurant
 - `count`: Number of reviews to be crawled from the restaurant
+4. `/classify` - `POST`: Classify the review using sentiment and aspect model
+- `text`: the review text to be classified

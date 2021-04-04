@@ -1,3 +1,6 @@
+# Model
+*.bin
+
 # tinydb file
 *db.json
 

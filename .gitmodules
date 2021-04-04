@@ -1,0 +1,6 @@
+[submodule "aspect_model"]
+	path = aspect_model
+	url = git@github.com:saobangmath/shopee_code_league_2021.git
+[submodule "sentiment_model"]
+	path = sentiment_model
+	url = git@github.com:theSJace/Deploy-BERT-for-Sentiment-Analysis-with-FastAPI.git

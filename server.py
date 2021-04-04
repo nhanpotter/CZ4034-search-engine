@@ -1,12 +1,16 @@
 import json
 
+import requests
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 
 import es_connection
+from aspect_model.predict import predict_aspects
+from constants import SENTIMENT_MODEL_URL
 from crawler import TripAdvisorCrawler
 from migrate_data import insert_new_reviews
+from model_helper import convert_sentiment_from_str, get_sentiment_from_aspect_score
 from query import API
 from restaurant_utils import RestaurantUtils
 
@@ -106,6 +110,52 @@ def add_review_api():
 
     return jsonify({
         "data": inserted_reviews
+    })
+
+
+@app.route("/classify", methods=["POST"])
+@cross_origin()
+def classify_api():
+    print(request.data)
+    body = json.loads(request.data)
+    # Check for valid body
+    if "text" not in body:
+        return jsonify(get_error_dict("no 'text' provided"))
+
+    text = body["text"]
+    response = {
+        "aspect_model": {}
+    }
+    # Sentiment model
+    sentiment_resp = requests.post(SENTIMENT_MODEL_URL, json={"text": text})
+    sentiment_score = sentiment_resp.json()['sentiment']
+    response['sentiment_model'] = convert_sentiment_from_str(sentiment_score)
+
+    # Aspect model
+    aspect_resp = predict_aspects(text)
+    food_existence = aspect_resp['food_existence_preds']
+    food_score = aspect_resp['food_score_preds']
+    service_existence = aspect_resp['service_existence_preds']
+    service_score = aspect_resp['service_score_preds']
+    price_existence = aspect_resp['price_existence_preds']
+    price_score = aspect_resp['price_score_preds']
+    if food_existence <= 0.5:
+        response["aspect_model"]["food"] = 0
+    else:
+        response["aspect_model"]["food"] = get_sentiment_from_aspect_score(food_score)
+
+    if service_existence <= 0.5:
+        response["aspect_model"]["service"] = 0
+    else:
+        response["aspect_model"]["service"] = get_sentiment_from_aspect_score(service_score)
+
+    if price_existence <= 0.5:
+        response["aspect_model"]["price"] = 0
+    else:
+        response["aspect_model"]["price"] = get_sentiment_from_aspect_score(price_score)
+
+    return jsonify({
+        'data': response
     })
 
 
