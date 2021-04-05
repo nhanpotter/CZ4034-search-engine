@@ -1,7 +1,8 @@
 import os
 import time
-import requests
+from contextlib import contextmanager
 
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
@@ -23,8 +24,16 @@ def init_driver():
     return driver
 
 
-class TripAdvisorCrawler:
+@contextmanager
+def get_driver():
     driver = init_driver()
+    try:
+        yield driver
+    finally:
+        driver.quit()
+
+
+class TripAdvisorCrawler:
     '''
         form: 
         {
@@ -76,82 +85,84 @@ class TripAdvisorCrawler:
     '''
 
     def scrapeReviews(self, url, maxNoReviews):
-        reviewCount = 0
-        # store restaurant info
-        data = {}
-        # store list of reviews
-        data["reviews"] = []
-        # in case no reviews could be retrieve from the restaurant
-        data["success"] = False
-        # crawl the name and location of the restaurant
-        restaurantInfo = self.scrapeRestaurant(url)
-        if not restaurantInfo["success"]:  # the basic information could not be crawled
-            return data
-        # Store name
-        storeName = restaurantInfo["name"]
-        # Store location
-        storeLoc = restaurantInfo["location"]
-        # name and location of restaurant
-        data["name"] = storeName
-        data["location"] = storeLoc
+        with get_driver() as driver:
+            reviewCount = 0
+            # store restaurant info
+            data = {}
+            # store list of reviews
+            data["reviews"] = []
+            # in case no reviews could be retrieve from the restaurant
+            data["success"] = False
+            # crawl the name and location of the restaurant
+            restaurantInfo = self.scrapeRestaurant(url)
+            if not restaurantInfo["success"]:  # the basic information could not be crawled
+                return data
+            # Store name
+            storeName = restaurantInfo["name"]
+            # Store location
+            storeLoc = restaurantInfo["location"]
+            # name and location of restaurant
+            data["name"] = storeName
+            data["location"] = storeLoc
 
-        while reviewCount < maxNoReviews:
-            # Requests
-            self.driver.get(url)
-            time.sleep(1)
-            # Click More button
-            more = self.driver.find_elements_by_xpath("//span[contains(text(),'More')]")
-            for x in range(0, len(more)):
+            while reviewCount < maxNoReviews:
+                # Requests
+                driver.get(url)
+                time.sleep(1)
+                # Click More button
+                more = driver.find_elements_by_xpath("//span[contains(text(),'More')]")
+                for x in range(0, len(more)):
+                    try:
+                        driver.execute_script("arguments[0].click();", more[x])
+                        time.sleep(3)
+                    except:
+                        pass
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
                 try:
-                    self.driver.execute_script("arguments[0].click();", more[x])
-                    time.sleep(3)
+                    # Reviews
+                    results = soup.find('div', class_='listContainer hide-more-mobile')
+
+                    try:
+                        reviews = results.find_all('div', class_='prw_rup prw_reviews_review_resp')
+                        for review in reviews:
+                            try:
+                                ratingDate = review.find('span', class_='ratingDate').get('title')
+                                text_review = review.find('p', class_='partial_entry')
+                                if len(text_review.contents) > 2:
+                                    reviewText = str(text_review.contents[0][:-3]) + ' ' + str(
+                                        text_review.contents[1].text)
+                                else:
+                                    reviewText = text_review.text
+                                reviewerUsername = review.find('div', class_='info_text pointer_cursor')
+                                reviewerUsername = reviewerUsername.select('div > div')[0].get_text(strip=True)
+                                rating = review.find('div', class_='ui_column is-9').findChildren('span')
+                                rating = str(rating[0]).split('_')[3].split('0')[0]
+                                data["reviews"].append({
+                                    "name": storeName,
+                                    "date inserted": ratingDate,
+                                    "location": storeLoc,
+                                    "username": reviewerUsername,
+                                    "review": reviewText,
+                                    "rating": rating
+                                })
+                                data["success"] = True  # at least on review is crawled
+                                reviewCount += 1
+                                if reviewCount >= maxNoReviews:
+                                    break
+                            except Exception:  # Just go with the next review
+                                pass
+                    except Exception:  # reviews section could not be found
+                        pass
+                except Exception:  # the basic info of the restaurant could not be crawled
+                    pass
+                # Go to next page if exists
+                try:
+                    unModifiedUrl = str(soup.find('a', class_='nav next ui_button primary', href=True)['href'])
+                    url = 'https://www.tripadvisor.com' + unModifiedUrl
                 except:
-                    pass
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            try:
-                # Reviews
-                results = soup.find('div', class_='listContainer hide-more-mobile')
+                    reviewCount = maxNoReviews  # terminate the loop
 
-                try:
-                    reviews = results.find_all('div', class_='prw_rup prw_reviews_review_resp')
-                    for review in reviews:
-                        try:
-                            ratingDate = review.find('span', class_='ratingDate').get('title')
-                            text_review = review.find('p', class_='partial_entry')
-                            if len(text_review.contents) > 2:
-                                reviewText = str(text_review.contents[0][:-3]) + ' ' + str(text_review.contents[1].text)
-                            else:
-                                reviewText = text_review.text
-                            reviewerUsername = review.find('div', class_='info_text pointer_cursor')
-                            reviewerUsername = reviewerUsername.select('div > div')[0].get_text(strip=True)
-                            rating = review.find('div', class_='ui_column is-9').findChildren('span')
-                            rating = str(rating[0]).split('_')[3].split('0')[0]
-                            data["reviews"].append({
-                                "name": storeName,
-                                "date inserted": ratingDate,
-                                "location": storeLoc,
-                                "username": reviewerUsername,
-                                "review": reviewText,
-                                "rating": rating
-                            })
-                            data["success"] = True  # at least on review is crawled
-                            reviewCount += 1
-                            if reviewCount >= maxNoReviews:
-                                break
-                        except Exception:  # Just go with the next review
-                            pass
-                except Exception:  # reviews section could not be found
-                    pass
-            except Exception:  # the basic info of the restaurant could not be crawled
-                pass
-            # Go to next page if exists
-            try:
-                unModifiedUrl = str(soup.find('a', class_='nav next ui_button primary', href=True)['href'])
-                url = 'https://www.tripadvisor.com' + unModifiedUrl
-            except:
-                reviewCount = maxNoReviews  # terminate the loop
-
-        return data
+            return data
 
 
 if __name__ == '__main__':
