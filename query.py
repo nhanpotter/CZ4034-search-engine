@@ -106,21 +106,23 @@ class API:
                         "multi_match": {
                             "query": term,
                             "operator": AND_OPERATOR,
-                            "fields": ["name", "review", "location"]
+                            "fields": ["name", "review", "location"],
+                            "boost": 10
                         }
                     }, {
                         "multi_match": {
                             "query": term,
                             "operator": AND_OPERATOR,
                             "fuzziness": fuzzy,
-                            "fields": ["name", "review", "location"]
+                            "fields": ["name", "review", "location"],
+                            "boost": 2
                         }
                     }, {
                         "multi_match": {
                             "query": term,
                             "operator": OR_OPERATOR,
-                            "fuzziness": fuzzy,
-                            "fields": ["name", "review", "location"]
+                            "fields": ["name", "review", "location"],
+                            "boost": 1
                         }
                     }]
                 }
@@ -142,6 +144,7 @@ class API:
                             "review": {
                                 "query": term,
                                 "operator": AND_OPERATOR,
+                                "boost": 10
                             }
                         }
                     }, {
@@ -149,7 +152,8 @@ class API:
                             "review": {
                                 "query": term,
                                 "operator": AND_OPERATOR,
-                                "fuzziness": fuzzy
+                                "fuzziness": fuzzy,
+                                "boost": 2
                             }
                         }
                     }, {
@@ -157,7 +161,7 @@ class API:
                             "review": {
                                 "query": term,
                                 "operator": OR_OPERATOR,
-                                "fuzziness": fuzzy
+                                "boost": 1
                             }
                         }
                     }]
