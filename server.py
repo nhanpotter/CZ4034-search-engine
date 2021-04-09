@@ -1,8 +1,9 @@
 import json
+import os
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS, cross_origin
 
 import es_connection
@@ -16,7 +17,7 @@ from restaurant_utils import RestaurantUtils
 
 load_dotenv(verbose=True)
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend/build")
 cors = CORS(app)
 
 
@@ -157,6 +158,16 @@ def classify_api():
     return jsonify({
         'data': response
     })
+
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 
 if __name__ == '__main__':
