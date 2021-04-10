@@ -16,6 +16,7 @@ Please install below requirements:
 - Node (<https://nodejs.org/en/download/>)
 - Pipenv (<https://pypi.org/project/pipenv/>)
 - python 3 venv library (<https://docs.python.org/3/library/venv.html>)
+- Rust (<https://www.rust-lang.org/tools/install>)
 
 ### Set environment variables
 Set these variables in `.env` file at the project root path.
