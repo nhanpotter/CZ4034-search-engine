@@ -47,7 +47,7 @@ export default function SortBy(props: SortByProps) {
                 classes={{paper: classes.menu}}
             >
                 <MenuItem onClick={() => {handleClose(0)}}>Relevant</MenuItem>
-                <MenuItem onClick={() => {handleClose(1)}}>User Rating</MenuItem>
+                {/*<MenuItem onClick={() => {handleClose(1)}}>User Rating</MenuItem>*/}
             </Menu>
         </div>
     );

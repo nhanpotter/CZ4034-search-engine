@@ -88,11 +88,9 @@ export default function Search() {
                 <div key={u._id}>
                     <ListItem>
                         <ListItemAvatar>
-                            <Tooltip title={"User Rating"}>
-                                <Avatar className={getRatingColor(u._source.rating)}>
-                                    <Typography variant={"h6"} component={"h6"}>{u._source.rating}</Typography>
-                                </Avatar>
-                            </Tooltip>
+                            <Avatar className={getRatingColor(u._source.rating)}>
+                                {/*<Typography variant={"h6"} component={"h6"}>{u._source.rating}</Typography>*/}
+                            </Avatar>
                         </ListItemAvatar>
                         <ListItemText primary={
                             <Typography className={collapseId[index] ? classes.reviewFull : classes.reviewCrop}

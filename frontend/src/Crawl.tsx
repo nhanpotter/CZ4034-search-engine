@@ -40,7 +40,7 @@ export default function Crawl() {
     const [alertStatus, setAlertStatus] = React.useState<alertType | undefined>(undefined);
     const [alertInfo, setAlertInfo] = React.useState("");
     const [crawlResult, setCrawlResult] = React.useState<CrawlResponse[]>([]);
-    const [collapseId, setCollapseId] = React.useState(new Array(100).fill(false));
+    const [collapseId, setCollapseId] = React.useState(new Array(100).fill(true));
 
     const changeNumberInput = (value: any) => {
         if (!isNaN(value)) {
@@ -104,18 +104,16 @@ export default function Crawl() {
                 <div key={index + "__crawl"}>
                     <ListItem>
                         <ListItemAvatar>
-                            <Tooltip title={"User Rating"}>
-                                <Avatar className={getRatingColor(u._source.rating)}>
-                                    <Typography variant={"h6"} component={"h6"}>{u._source.rating}</Typography>
-                                </Avatar>
-                            </Tooltip>
+                            <Avatar className={getRatingColor(u._source.rating)}>
+                                {/*<Typography variant={"h6"} component={"h6"}>{u._source.rating}</Typography>*/}
+                            </Avatar>
                         </ListItemAvatar>
                         <ListItemText primary={
                             <Typography className={collapseId[index] ? classes.reviewFull : classes.reviewCrop}
                                         component={"p"}>
                                 {u._source.review}
                             </Typography>
-                        } secondary={u._source.date_inserted}/>
+                        } secondary={u._source.username + " | " + u._source.date_inserted}/>
                         <div onClick={() => openCollapse(index)}>
                             {collapseId[index] ? <ExpandLess/> : <ExpandMore/>}
                         </div>
