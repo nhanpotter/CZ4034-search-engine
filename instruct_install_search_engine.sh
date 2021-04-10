@@ -2,7 +2,8 @@
 
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r requirements.txt
+pip install -U pip wheel setuptools
+pip install -r requirements.txt
 
 # Index data
 python3 migrate_restaurant.py

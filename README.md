@@ -10,7 +10,7 @@ use NTU network or connect to NTU VPN first to access it.
 ### Requirements
 Please install below requirements:
 - python version 3.8+
-- pip version 20.0.2+
+- pip
 - Elasticsearch (<https://www.elastic.co/downloads/elasticsearch>)
 - ChromeDriver (<https://chromedriver.chromium.org/>)
 - Node (<https://nodejs.org/en/download/>)
