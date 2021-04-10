@@ -24,5 +24,6 @@ flask-cors
 selenium
 bs4
 tinydb
+gdown
 
 -r aspect_model/requirements.txt
